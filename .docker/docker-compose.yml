@@ -1,0 +1,47 @@
+# https://medium.com/@romaricp/the-perfect-kit-starter-for-a-symfony-4-project-with-docker-and-php-7-2-fda447b6bca1
+# per php https://hub.docker.com/r/fecshop/php-7.1.13-fpm/
+
+
+version: '3'
+services:
+    apache:
+        image: httpd
+        container_name: httpd
+        ports:
+            - 8088:80
+            - 8443:443
+        volumes:
+            - ../symfony:/usr/local/apache2/htdocs/
+        depends_on:
+            - php
+
+    mysql:
+        image: mysql:5.7
+        container_name: mysql
+        volumes:
+            - ./mysql/data:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: db
+            MYSQL_USER: user
+            MYSQL_PASSWORD: pass
+
+    php:
+        build: .docker/php
+        container_name: php
+        volumes:
+            - ../symfony:/var/www/symfony:cached
+        environment:
+            XDEBUG_CONFIG: remote_host=host.docker.internal
+        depends_on:
+            - mysql
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin
+        ports:
+            - 8085:80
+        links:
+            - mysql
+        environment:
+            PMA_HOST: mysql
